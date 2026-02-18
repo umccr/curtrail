@@ -1,0 +1,19 @@
+[project]
+name = "cur-and-cloud-trail-analyse"
+version = "0.1.0"
+description = "A set of Python scripts/modules that analyse the centre's CUR data and Cloud Trail logs"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "polars",
+    "numpy",
+    "boto3",
+    "boto3-stubs",
+    "fsspec",
+    "s3fs",
+    "dateparser",
+    "orjson",
+    "boto3",
+    "typer"
+]
+
