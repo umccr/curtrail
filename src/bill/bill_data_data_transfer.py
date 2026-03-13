@@ -2,6 +2,7 @@ from typing import Optional
 
 import polars as pl
 
+from bill.bill_data import BillData
 from common.assertion_guards import assert_all_values_are_the_same
 from common.schema.aws_cur_schema import (
     line_item_usage_type_name,
@@ -12,21 +13,24 @@ from common.schema.aws_cur_schema import (
     line_item_net_unblended_cost_name,
     line_item_usage_amount_name,
     line_item_line_item_description_name,
-    pricing_unit_name, product_operation_name, product_fee_code_name, product_fee_description_name,
+    pricing_unit_name,
+    product_operation_name,
+    product_fee_code_name,
+    product_fee_description_name,
 )
-from common.fetch_cur_data import BillingData
 
 
-class BillingDataDataTransfer:
+class BillDataDataTransfer:
     _data_transfer_bill: pl.DataFrame
 
-    def __init__(self, complete_bill: BillingData) -> None:
+    def __init__(self, complete_bill: BillData) -> None:
         # store a new data frame consisting only of data transfer records
         self._data_transfer_bill = (
-            complete_bill.aws_usage_bill()
-            .filter(pl.col(product_servicecode_name).eq("AWSDataTransfer"))
+            complete_bill.aws_usage_bill().filter(
+                pl.col(product_servicecode_name).eq("AWSDataTransfer")
+            )
             # replace the incorrectly name usage types involving us-east-1
-            # (this is a legacy from AWs billing that we can easily correct)
+            # (this is a legacy from AWs bill that we can easily correct)
             .with_columns(
                 pl.col(product_usagetype_name).replace(
                     ["DataTransfer-In-Bytes", "DataTransfer-Out-Bytes"],
@@ -35,10 +39,10 @@ class BillingDataDataTransfer:
             )
             # these values are always the same and/or useless in a data transfer setting
             # so we drop them to make that clear
-            #.drop([
+            # .drop([
             #    product_operation_name,
             #    product_fee_code_name
-            #])
+            # ])
         )
 
         self.data_transfer_bill = self._data_transfer_bill.vstack(
@@ -72,8 +76,8 @@ class BillingDataDataTransfer:
     ]
 
     def transfer_region_matrix(self, min_gb: Optional[float]) -> pl.DataFrame:
-        #assert_all_values_are_null(self._data_transfer_bill.get_column(product_fee_code_name))
-        #assert_all_values_are_null(self._data_transfer_bill.get_column(product_fee_description_name))
+        # assert_all_values_are_null(self._data_transfer_bill.get_column(product_fee_code_name))
+        # assert_all_values_are_null(self._data_transfer_bill.get_column(product_fee_description_name))
 
         # print(
         #     self._data_transfer_bill.get_column(product_from_location_name)
@@ -93,7 +97,9 @@ class BillingDataDataTransfer:
         # )
 
         df = (
-            self._data_transfer_bill.group_by([product_from_location_name, product_to_location_name])
+            self._data_transfer_bill.group_by(
+                [product_from_location_name, product_to_location_name]
+            )
             .agg(
                 pl.col(line_item_usage_amount_name).sum().round(5).alias("gb"),
                 pl.col(line_item_net_unblended_cost_name).sum().alias("cost"),
@@ -109,6 +115,6 @@ class BillingDataDataTransfer:
         if min_gb is not None:
             df = df.filter(pl.col("gb").ge(min_gb))
 
-        return (df
-                .pivot(index="product_from_location", columns="product_to_location", values="gb")
-                .fill_null(""))
+        return df.pivot(
+            index="product_from_location", columns="product_to_location", values="gb"
+        ).fill_null("")

@@ -1,20 +1,22 @@
 import polars as pl
 
+from bill.bill_data import BillData
 from common.assertion_guards import assert_all_values_are_the_same
 from common.schema.aws_cur_schema import (
     product_servicecode_name,
-    pricing_unit_name, )
-from common.fetch_cur_data import BillingData
+    pricing_unit_name,
+)
 
 
-class BillingDataStorage:
+class BillDataStorage:
     _storage_bill: pl.DataFrame
 
-    def __init__(self, complete_bill: BillingData) -> None:
+    def __init__(self, complete_bill: BillData) -> None:
         # store a new data frame consisting only of storage
-        self._storage_bill = (
-            complete_bill.aws_usage_bill()
-            .filter(pl.col(product_servicecode_name).is_in(["AmazonS3GlacierDeepArchive", "AmazonS3"]))
+        self._storage_bill = complete_bill.aws_usage_bill().filter(
+            pl.col(product_servicecode_name).is_in(
+                ["AmazonS3GlacierDeepArchive", "AmazonS3"]
+            )
         )
 
         # assertions that we believe a true and some of our logic will be wrong if they are not true

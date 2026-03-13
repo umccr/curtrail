@@ -18,12 +18,8 @@ def ip_as_iso_country_code(bucket: str, ip_array: pl.Series):
     :param ip_array: array of IP addresses
     :return: series of ISO country codes of the IP addresses
     """
-    return pl.Series(
-        [
-            geo_country_iso_code_lookup(bucket, value)
-            for value in ip_array
-        ]
-    )
+    return pl.Series([geo_country_iso_code_lookup(bucket, value) for value in ip_array])
+
 
 def ip_as_city_name(bucket: str, ip_array: pl.Series):
     """
@@ -33,12 +29,8 @@ def ip_as_city_name(bucket: str, ip_array: pl.Series):
     :param ip_array: array of IP addresses
     :return: series of city names of the IP addresses
     """
-    return pl.Series(
-        [
-            geo_city_name_lookup(bucket, value)
-            for value in ip_array
-        ]
-    )
+    return pl.Series([geo_city_name_lookup(bucket, value) for value in ip_array])
+
 
 @lru_cache(maxsize=1024)
 def geo_city_name_lookup(s3_bucket: str, ip_address: str) -> Optional[str]:
@@ -52,6 +44,7 @@ def geo_city_name_lookup(s3_bucket: str, ip_address: str) -> Optional[str]:
     except ValueError:
         return "Amazon"
 
+
 @lru_cache(maxsize=1024)
 def geo_country_iso_code_lookup(s3_bucket: str, ip_address: str) -> Optional[str]:
     # creates on first use for this bucket and then caches
@@ -64,14 +57,15 @@ def geo_country_iso_code_lookup(s3_bucket: str, ip_address: str) -> Optional[str
     except ValueError:
         return "AMZ"
 
+
 @lru_cache(maxsize=None)
 def create_geo_reader(bucket_name: str) -> geoip2.database.Reader:
 
-    object_key = 'GeoLite2-City.mmdb'
+    object_key = "GeoLite2-City.mmdb"
 
     start_time = perf_counter()
 
-    s3 = boto3.client('s3')
+    s3 = boto3.client("s3")
 
     with NamedTemporaryFile(suffix=".mmdb", delete=True) as tmp:
         s3.download_file(bucket_name, object_key, tmp.name)

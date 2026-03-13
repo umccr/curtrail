@@ -10,7 +10,7 @@ from common.schema.aws_cur_schema import (
 )
 
 
-class BillingData:
+class BillData:
     _complete_bill: pl.DataFrame
 
     def __init__(self, complete_bill: pl.DataFrame) -> None:
@@ -46,7 +46,7 @@ class BillingData:
 
         if not legals_df_check_count.is_empty():
             raise Exception(
-                "Found a billing line item that was AWS Marketplace but also legally billed by AWS"
+                "Found a bill line item that was AWS Marketplace but also legally billed by AWS"
             )
 
         # create a frame of line items for each vendor and return

@@ -19,9 +19,8 @@ def assert_all_values_are_the_same(series: pl.Series, value: str):
         # Handle empty series if needed, depending on desired behavior
         pass
 
+
 def assert_all_values_are_null(series: pl.Series):
     """Asserts that all values in a Polars Series are null."""
     if not series.null_count() != series.len():
-        raise AssertionError(
-            f"Series '{series.name}' should be all null"
-        )
+        raise AssertionError(f"Series '{series.name}' should be all null")

@@ -7,12 +7,13 @@ import urllib3
 # Create a PoolManager instance
 http = urllib3.PoolManager()
 
+
 @lru_cache(maxsize=None)
 def rate(d: str, orig_currency: str, target_currency: str) -> float:
     try:
         u = f"https://api.frankfurter.dev/v1/{d}?base={orig_currency}&symbols={target_currency}"
-        contents_response = http.request('GET', u)
-        contents = json.loads(contents_response.data.decode('utf-8'))
+        contents_response = http.request("GET", u)
+        contents = json.loads(contents_response.data.decode("utf-8"))
         r = contents["rates"][target_currency]
         return r
     except Exception:
