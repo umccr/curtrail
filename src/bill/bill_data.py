@@ -2,7 +2,7 @@ from typing import Dict, List
 
 import polars as pl
 
-from common.aws_cur_schema import (
+from common.schema.aws_cur_schema import (
     bill_bill_type_name,
     bill_billing_entity_name,
     line_item_legal_entity_name,

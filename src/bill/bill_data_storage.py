@@ -1,7 +1,7 @@
 import polars as pl
 
 from common.assertion_guards import assert_all_values_are_the_same
-from common.aws_cur_schema import (
+from common.schema.aws_cur_schema import (
     product_servicecode_name,
     pricing_unit_name, )
 from common.fetch_cur_data import BillingData

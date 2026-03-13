@@ -3,7 +3,7 @@ from typing import Optional
 import polars as pl
 
 from common.assertion_guards import assert_all_values_are_the_same
-from common.aws_cur_schema import (
+from common.schema.aws_cur_schema import (
     line_item_usage_type_name,
     product_servicecode_name,
     product_usagetype_name,
