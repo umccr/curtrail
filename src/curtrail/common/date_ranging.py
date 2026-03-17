@@ -1,4 +1,5 @@
 from typing import Tuple
+from zoneinfo import ZoneInfo
 
 import dateparser
 import calendar
@@ -11,11 +12,17 @@ from dateutil.relativedelta import relativedelta
 # would have wanted - and took < 5 mins to make
 
 
-def parse_date_range(user_input) -> Tuple[datetime, datetime]:
+def parse_date_range(user_input, tz: ZoneInfo = ZoneInfo("UTC")) -> Tuple[date, date]:
     """
     Parse user input into a date range tuple (start_date, end_date).
-    Returns both as datetime objects with accurate period boundaries.
+
+    Both dates are calendar dates interpreted in `tz`.  Relative descriptions
+    like "this month" or "last 7 days" are evaluated against the current
+    moment in `tz`.
     """
+    def as_dates(start_dt: datetime, end_dt: datetime) -> Tuple[date, date]:
+        return start_dt.date(), end_dt.date()
+
     # Check if input contains range indicators
     range_separators = [" to ", " - ", "..", " until "]
 
@@ -25,13 +32,12 @@ def parse_date_range(user_input) -> Tuple[datetime, datetime]:
             start = dateparser.parse(parts[0].strip())
             end = dateparser.parse(parts[1].strip())
             if start and end:
-                # If end date is just a date (no time), set to end of day
                 if end.hour == 0 and end.minute == 0 and end.second == 0:
                     end = end.replace(hour=23, minute=59, second=59, microsecond=999999)
-                return start, end
+                return as_dates(start, end)
 
     lower = user_input.lower()
-    now = datetime.now()
+    now = datetime.now(tz=tz)
 
     # THIS MONTH
     if "this month" in lower:
@@ -40,7 +46,7 @@ def parse_date_range(user_input) -> Tuple[datetime, datetime]:
         end = now.replace(
             day=last_day, hour=23, minute=59, second=59, microsecond=999999
         )
-        return start, end
+        return as_dates(start, end)
 
     # THIS YEAR
     if "this year" in lower:
@@ -48,15 +54,13 @@ def parse_date_range(user_input) -> Tuple[datetime, datetime]:
         end = now.replace(
             month=12, day=31, hour=23, minute=59, second=59, microsecond=999999
         )
-        return start, end
+        return as_dates(start, end)
 
     # THIS WEEK
     if "this week" in lower:
-        # Get start of week (Monday)
         start = now - timedelta(days=now.weekday())
-        # End of week (Sunday)
         end = start + timedelta(days=6)
-        return start.today(), end.today()
+        return as_dates(start, end)
 
     # RELATIVE DAYS (e.g., "last 7 days", "past 30 days") - check BEFORE dateparser
     if "last" in lower or "past" in lower:
@@ -65,17 +69,15 @@ def parse_date_range(user_input) -> Tuple[datetime, datetime]:
             num = int(match.group(1))
             unit = match.group(2)
 
-            end = datetime.now()
+            end = now
             if unit == "day":
                 start = end - timedelta(days=num)
             elif unit == "week":
                 start = end - timedelta(weeks=num)
             elif unit == "month":
-                from dateutil.relativedelta import relativedelta
-
                 start = end - relativedelta(months=num)
 
-            return (start, end)
+            return as_dates(start, end)
 
     # Check if input is just a year (YYYY)
     year_pattern = r"^\d{4}$"
@@ -83,78 +85,77 @@ def parse_date_range(user_input) -> Tuple[datetime, datetime]:
         year = int(user_input.strip())
         start = datetime(year, 1, 1, 0, 0, 0, 0)
         end = datetime(year, 12, 31, 23, 59, 59, 999999)
-        return start, end
+        return as_dates(start, end)
 
     # Check if input is a month specification (YYYY-MM or "Month YYYY" or "Month")
     month_year_pattern = r"^\d{4}-\d{2}$"  # 2025-01
     if re.match(month_year_pattern, user_input.strip()):
-        # Parse as YYYY-MM
-        date = dateparser.parse(user_input)
-        if date:
-            start = date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        parsed = dateparser.parse(user_input)
+        if parsed:
+            start = parsed.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
             last_day = calendar.monthrange(start.year, start.month)[1]
             end = start.replace(
                 day=last_day, hour=23, minute=59, second=59, microsecond=999999
             )
-            return start, end
+            return as_dates(start, end)
 
     # Check for "Month YYYY" or just "Month" format
     month_names = "|".join(calendar.month_name[1:] + calendar.month_abbr[1:])
     month_pattern = rf"^({month_names})\s*(\d{{4}})?$"
     match = re.match(month_pattern, user_input.strip(), re.IGNORECASE)
     if match:
-        date = dateparser.parse(user_input)
-        if date:
-            start = date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        parsed = dateparser.parse(user_input)
+        if parsed:
+            start = parsed.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
             last_day = calendar.monthrange(start.year, start.month)[1]
             end = start.replace(
                 day=last_day, hour=23, minute=59, second=59, microsecond=999999
             )
-            return start, end
+            return as_dates(start, end)
 
     # Single date/period - interpret as a range
-    date = dateparser.parse(user_input, settings={"PREFER_DATES_FROM": "past"})
+    parsed = dateparser.parse(user_input, settings={"PREFER_DATES_FROM": "past"})
 
-    if date:
+    if parsed:
         # TODAY
         if "today" in lower or "now" in lower:
-            return date.now(), date.now()
+            return as_dates(now, now)
 
         # YESTERDAY
         if "yesterday" in lower:
-            start = date.replace(hour=0, minute=0, second=0, microsecond=0)
+            start = parsed.replace(hour=0, minute=0, second=0, microsecond=0)
             end = start.replace(hour=23, minute=59, second=59, microsecond=999999)
-            return start, end
+            return as_dates(start, end)
 
         # WEEK (last week, etc.)
         if "week" in lower:
-            start = date.replace(hour=0, minute=0, second=0, microsecond=0)
+            start = parsed.replace(hour=0, minute=0, second=0, microsecond=0)
             end = start + timedelta(days=7) - timedelta(microseconds=1)
-            return (start, end)
+            return as_dates(start, end)
 
         # MONTH (last month, etc.)
         if "month" in lower:
-            start = date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            start = parsed.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
             last_day = calendar.monthrange(start.year, start.month)[1]
             end = start.replace(
                 day=last_day, hour=23, minute=59, second=59, microsecond=999999
             )
-            return (start, end)
+            return as_dates(start, end)
 
         # YEAR (last year, etc.)
         if "year" in lower:
-            start = date.replace(
+            start = parsed.replace(
                 month=1, day=1, hour=0, minute=0, second=0, microsecond=0
             )
             end = start.replace(
                 month=12, day=31, hour=23, minute=59, second=59, microsecond=999999
             )
-            return (start, end)
+            return as_dates(start, end)
 
         # SPECIFIC DATE (default case)
-        start = date.replace(hour=0, minute=0, second=0, microsecond=0)
+        start = parsed.replace(hour=0, minute=0, second=0, microsecond=0)
         end = start.replace(hour=23, minute=59, second=59, microsecond=999999)
-        return (start, end)
+        return as_dates(start, end)
 
     return None
 

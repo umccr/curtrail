@@ -2,7 +2,7 @@ from pathlib import Path
 
 import polars as pl
 
-from common.aws_config_profiles import account_id_to_profile
+from curtrail.common.aws_config_profiles import account_id_to_profile
 
 
 def account_id_convert(account_id: str) -> str:

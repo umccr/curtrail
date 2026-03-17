@@ -8,7 +8,7 @@ import polars as pl
 # https://docs.aws.amazon.com/cur/latest/userguide/data-dictionary.html
 
 #
-# bill
+# cur
 # https://docs.aws.amazon.com/cur/latest/userguide/table-dictionary-cur2-bill.html
 #
 

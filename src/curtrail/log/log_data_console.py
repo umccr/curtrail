@@ -4,8 +4,8 @@ import polars as pl
 class LogDataConsole:
     _console_logs: pl.DataFrame
 
-    def __init__(self, complete_logs: pl.DataFrame) -> None:
-        self._console_logs = complete_logs.filter(
+    def __init__(self, parent: "LogData") -> None:
+        self._console_logs = parent.as_frame().filter(
             pl.col("eventType").is_in(["AwsConsoleAction", "AwsConsoleSignIn"])
         )
 

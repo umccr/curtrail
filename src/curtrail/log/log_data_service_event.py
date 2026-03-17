@@ -4,8 +4,8 @@ import polars as pl
 class LogDataServiceEvent:
     _service_event_logs: pl.DataFrame
 
-    def __init__(self, complete_logs: pl.DataFrame) -> None:
-        self._service_event_logs = complete_logs.filter(
+    def __init__(self, parent: "LogData") -> None:
+        self._service_event_logs = parent.as_frame().filter(
             pl.col("eventType") == "AwsServiceEvent"
         )
 

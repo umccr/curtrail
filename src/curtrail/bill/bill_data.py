@@ -2,21 +2,27 @@ from typing import Dict, List
 
 import polars as pl
 
-from common.schema.aws_cur_schema import (
+from curtrail.source_filter import SourceFilter
+from curtrail.source_bill_cur import SourceBill
+from curtrail.common.schema.aws_cur_schema import (
     bill_bill_type_name,
     bill_billing_entity_name,
     line_item_legal_entity_name,
     product_servicecode_name,
+    all_fields,
 )
 
 
 class BillData:
     _complete_bill: pl.DataFrame
 
-    def __init__(self, complete_bill: pl.DataFrame) -> None:
-        self._complete_bill = complete_bill
+    def __init__(self, sources: List[SourceBill], source_filter: SourceFilter) -> None:
+        frames = [s.fetch_data(source_filter) for s in sources]
+        self._complete_bill = (
+            pl.concat(frames) if frames else pl.DataFrame(schema=all_fields)
+        )
 
-    """ The entire bill of all line items from all data files found """
+    """ The entire cur of all line items from all data files found """
 
     def complete_bill(self) -> pl.DataFrame:
         return self._complete_bill
@@ -24,7 +30,7 @@ class BillData:
     """ The marketplace bills keyed by vendor, includes usage, refunds and purchases """
 
     def aws_marketplace_by_vendor_bill(self) -> Dict[str, pl.DataFrame]:
-        # find all legal entities in our bill that are not AWS (i.e. are AWS Marketplace)
+        # find all legal entities in our cur that are not AWS (i.e. are AWS Marketplace)
         legals_df = (
             self._complete_bill.filter(pl.col(bill_billing_entity_name) != "AWS")
             .select(line_item_legal_entity_name)
@@ -46,7 +52,7 @@ class BillData:
 
         if not legals_df_check_count.is_empty():
             raise Exception(
-                "Found a bill line item that was AWS Marketplace but also legally billed by AWS"
+                "Found a cur line item that was AWS Marketplace but also legally billed by AWS"
             )
 
         # create a frame of line items for each vendor and return
@@ -61,27 +67,27 @@ class BillData:
 
         return result
 
-    """ The main bill for AWS specific items """
+    """ The main cur for AWS specific items """
 
     def aws_bill(self) -> pl.DataFrame:
         return self.complete_bill().filter(pl.col(bill_billing_entity_name) == "AWS")
 
-    """ The main bill for AWS specific items where they are documenting resource usage """
+    """ The main cur for AWS specific items where they are documenting resource usage """
 
     def aws_usage_bill(self) -> pl.DataFrame:
         return self.aws_bill().filter(pl.col(bill_bill_type_name) == "Anniversary")
 
-    """ The main bill for AWS specific items where they are documenting purchases """
+    """ The main cur for AWS specific items where they are documenting purchases """
 
     def aws_purchases_bill(self) -> pl.DataFrame:
         return self.aws_bill().filter(pl.col(bill_bill_type_name) == "Purchase")
 
-    """ The main bill for AWS specific items where they are documenting refunds """
+    """ The main cur for AWS specific items where they are documenting refunds """
 
     def aws_refunds_bill(self) -> pl.DataFrame:
         return self.aws_bill().filter(pl.col(bill_bill_type_name) == "Refund")
 
-    """ The list of unique service codes contained in this bill """
+    """ The list of unique service codes contained in this cur """
 
     def service_codes(self) -> List[str]:
         return (

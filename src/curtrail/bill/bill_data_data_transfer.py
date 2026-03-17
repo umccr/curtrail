@@ -2,9 +2,9 @@ from typing import Optional
 
 import polars as pl
 
-from bill.bill_data import BillData
-from common.assertion_guards import assert_all_values_are_the_same
-from common.schema.aws_cur_schema import (
+from curtrail.bill.bill_data import BillData
+from curtrail.common.assertion_guards import assert_all_values_are_the_same
+from curtrail.common.schema.aws_cur_schema import (
     line_item_usage_type_name,
     product_servicecode_name,
     product_usagetype_name,
@@ -30,7 +30,7 @@ class BillDataDataTransfer:
                 pl.col(product_servicecode_name).eq("AWSDataTransfer")
             )
             # replace the incorrectly name usage types involving us-east-1
-            # (this is a legacy from AWs bill that we can easily correct)
+            # (this is a legacy from AWs cur that we can easily correct)
             .with_columns(
                 pl.col(product_usagetype_name).replace(
                     ["DataTransfer-In-Bytes", "DataTransfer-Out-Bytes"],
