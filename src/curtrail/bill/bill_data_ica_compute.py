@@ -9,9 +9,7 @@ class BillDataIcaCompute:
     def __init__(self, parent: "BillDataIca") -> None:
         # store a new data frame consisting only of storage
         self._compute_bill = parent.as_frame().filter(
-            pl.col(category_name).is_in(
-                ["Compute"]
-            )
+            pl.col(category_name).is_in(["Compute"])
         )
 
     def as_frame(self) -> pl.DataFrame:

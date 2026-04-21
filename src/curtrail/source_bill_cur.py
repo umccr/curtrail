@@ -67,14 +67,16 @@ class SourceBillCUR(SourceBill):
 
         # Filter to the precise UTC range expressed as naive UTC milliseconds
         # (CUR timestamps are stored as UTC without tzinfo).
-        utc_start_naive = pl.lit(utc_start).dt.replace_time_zone(None).cast(pl.Datetime("ms"))
-        utc_end_naive = pl.lit(utc_end).dt.replace_time_zone(None).cast(pl.Datetime("ms"))
+        utc_start_naive = (
+            pl.lit(utc_start).dt.replace_time_zone(None).cast(pl.Datetime("ms"))
+        )
+        utc_end_naive = (
+            pl.lit(utc_end).dt.replace_time_zone(None).cast(pl.Datetime("ms"))
+        )
 
         cur_df = cur_df.filter(
             pl.col(line_item_usage_start_date_name).ge(utc_start_naive)
         )
-        cur_df = cur_df.filter(
-            pl.col(line_item_usage_end_date_name).le(utc_end_naive)
-        )
+        cur_df = cur_df.filter(pl.col(line_item_usage_end_date_name).le(utc_end_naive))
 
         return source_filter.localize_datetimes(cur_df)

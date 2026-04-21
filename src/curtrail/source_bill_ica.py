@@ -14,7 +14,9 @@ from curtrail.common.schema.ica_schema import (
     usage_timestamp_name,
     billing_date_name,
     USAGE_TIMESTAMP_FORMAT,
-    BILLING_DATE_FORMAT, metadata_start_time_name, metadata_completion_time_name,
+    BILLING_DATE_FORMAT,
+    metadata_start_time_name,
+    metadata_completion_time_name,
 )
 
 
@@ -43,8 +45,7 @@ def _parse_utc_datetime(col: pl.Expr) -> pl.Expr:
     are truncated as they are not relevant.
     """
     return (
-        col
-        .str.replace("T", " ", literal=True)
+        col.str.replace("T", " ", literal=True)
         .str.replace(r"Z$", "", literal=False)
         .str.to_datetime(format=None, strict=False, time_unit="ms")
         .dt.replace_time_zone("UTC")
@@ -70,11 +71,18 @@ class SourceBillIca(SourceBill):
         )
 
         df = (
-            pl.scan_csv(bill_period_scan, schema=csv_schema).collect()
+            pl.scan_csv(bill_period_scan, schema=csv_schema)
+            .collect()
             .with_columns(
-                pl.col(usage_timestamp_name).str.strptime(pl.Datetime("ms"), format=USAGE_TIMESTAMP_FORMAT),
-                pl.col(billing_date_name).str.strptime(pl.Date(), format=BILLING_DATE_FORMAT),
-                pl.col(metadata_name).map_elements(_metadata_to_json, return_dtype=pl.String),
+                pl.col(usage_timestamp_name).str.strptime(
+                    pl.Datetime("ms"), format=USAGE_TIMESTAMP_FORMAT
+                ),
+                pl.col(billing_date_name).str.strptime(
+                    pl.Date(), format=BILLING_DATE_FORMAT
+                ),
+                pl.col(metadata_name).map_elements(
+                    _metadata_to_json, return_dtype=pl.String
+                ),
             )
         )
 
@@ -96,8 +104,12 @@ class SourceBillIca(SourceBill):
         # now convert the randomly formatted metadata dates into real dates
         df = df.with_columns(
             pl.col(metadata_name).struct.with_fields(
-                _parse_utc_datetime(pl.field(metadata_start_time_name)).alias(metadata_start_time_name),
-                _parse_utc_datetime(pl.field(metadata_completion_time_name)).alias(metadata_completion_time_name),
+                _parse_utc_datetime(pl.field(metadata_start_time_name)).alias(
+                    metadata_start_time_name
+                ),
+                _parse_utc_datetime(pl.field(metadata_completion_time_name)).alias(
+                    metadata_completion_time_name
+                ),
             )
         )
 
@@ -119,8 +131,12 @@ class SourceBillIca(SourceBill):
         for year, month in month_set:
             cur_df = cur_df.vstack(self._scan_month(self._data_prefix, year, month))
 
-        utc_start_naive = pl.lit(utc_start).dt.replace_time_zone(None).cast(pl.Datetime("ms"))
-        utc_end_naive = pl.lit(utc_end).dt.replace_time_zone(None).cast(pl.Datetime("ms"))
+        utc_start_naive = (
+            pl.lit(utc_start).dt.replace_time_zone(None).cast(pl.Datetime("ms"))
+        )
+        utc_end_naive = (
+            pl.lit(utc_end).dt.replace_time_zone(None).cast(pl.Datetime("ms"))
+        )
 
         cur_df = cur_df.filter(pl.col(billing_date_name).ge(utc_start_naive))
         cur_df = cur_df.filter(pl.col(billing_date_name).le(utc_end_naive))

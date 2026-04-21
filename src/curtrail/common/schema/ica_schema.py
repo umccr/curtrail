@@ -103,32 +103,36 @@ metadata_price_discount_percent_dtype = pl.String()
 
 # Struct schema passed to json_decode — keys must match the JSON produced by _metadata_to_json.
 # All-string schema used with json_decode — JSON has no native datetime type.
-metadata_struct_schema = pl.Struct({
-    metadata_completion_time_name: pl.String(),
-    metadata_dragen_version_name: pl.String(),
-    metadata_id_name: pl.String(),
-    metadata_license_name: pl.String(),
-    metadata_payment_scheme_name: pl.String(),
-    metadata_pipeline_uuid_name: pl.String(),
-    metadata_price_discount_percent_name: pl.String(),
-    metadata_reference_name: pl.String(),
-    metadata_start_time_name: pl.String(),
-    metadata_status_name: pl.String(),
-})
+metadata_struct_schema = pl.Struct(
+    {
+        metadata_completion_time_name: pl.String(),
+        metadata_dragen_version_name: pl.String(),
+        metadata_id_name: pl.String(),
+        metadata_license_name: pl.String(),
+        metadata_payment_scheme_name: pl.String(),
+        metadata_pipeline_uuid_name: pl.String(),
+        metadata_price_discount_percent_name: pl.String(),
+        metadata_reference_name: pl.String(),
+        metadata_start_time_name: pl.String(),
+        metadata_status_name: pl.String(),
+    }
+)
 
 # Final struct schema after datetime fields have been parsed via struct.with_fields().
-metadata_final_struct_schema = pl.Struct({
-    metadata_completion_time_name: metadata_completion_time_dtype,
-    metadata_dragen_version_name: metadata_dragen_version_dtype,
-    metadata_id_name: metadata_id_dtype,
-    metadata_license_name: metadata_license_dtype,
-    metadata_payment_scheme_name: metadata_payment_scheme_dtype,
-    metadata_pipeline_uuid_name: metadata_pipeline_uuid_dtype,
-    metadata_price_discount_percent_name: metadata_price_discount_percent_dtype,
-    metadata_reference_name: metadata_reference_dtype,
-    metadata_start_time_name: metadata_start_time_dtype,
-    metadata_status_name: metadata_status_dtype,
-})
+metadata_final_struct_schema = pl.Struct(
+    {
+        metadata_completion_time_name: metadata_completion_time_dtype,
+        metadata_dragen_version_name: metadata_dragen_version_dtype,
+        metadata_id_name: metadata_id_dtype,
+        metadata_license_name: metadata_license_dtype,
+        metadata_payment_scheme_name: metadata_payment_scheme_dtype,
+        metadata_pipeline_uuid_name: metadata_pipeline_uuid_dtype,
+        metadata_price_discount_percent_name: metadata_price_discount_percent_dtype,
+        metadata_reference_name: metadata_reference_dtype,
+        metadata_start_time_name: metadata_start_time_dtype,
+        metadata_status_name: metadata_status_dtype,
+    }
+)
 
 # Final schema after all transformations (datetimes parsed, METADATA decoded to struct).
 # This is the shape returned by SourceBillIca.fetch_data().

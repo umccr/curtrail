@@ -39,10 +39,12 @@ class SourceFilter:
         """
         start = self.days_inclusive[0]
         end = self.days_inclusive[1]
-        utc_start = datetime(start.year, start.month, start.day,
-                             0, 0, 0, tzinfo=self.timezone).astimezone(timezone.utc)
-        utc_end = datetime(end.year, end.month, end.day,
-                           23, 59, 59, 999999, tzinfo=self.timezone).astimezone(timezone.utc)
+        utc_start = datetime(
+            start.year, start.month, start.day, 0, 0, 0, tzinfo=self.timezone
+        ).astimezone(timezone.utc)
+        utc_end = datetime(
+            end.year, end.month, end.day, 23, 59, 59, 999999, tzinfo=self.timezone
+        ).astimezone(timezone.utc)
         return utc_start, utc_end
 
     def localize_datetimes(self, df: "pl.DataFrame") -> "pl.DataFrame":
@@ -67,7 +69,5 @@ class SourceFilter:
                         .dt.convert_time_zone(tz_str)
                     )
                 elif dtype.time_zone != tz_str:
-                    exprs.append(
-                        pl.col(col_name).dt.convert_time_zone(tz_str)
-                    )
+                    exprs.append(pl.col(col_name).dt.convert_time_zone(tz_str))
         return df.with_columns(exprs) if exprs else df

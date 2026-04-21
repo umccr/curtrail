@@ -13,7 +13,9 @@ TEST_DATA = Path(__file__).parent.parent / "test-data"
 
 ICA_TEST_DATA_SOURCE = SourceBillIca(data_prefix=str(TEST_DATA / "ica"))
 CUR_TEST_DATA_SOURCE = SourceBillIca(data_prefix=str(TEST_DATA / "cur"))
-CLOUDTRAIL_TEST_DATA_SOURCE = SourceLogCloudTrailTestData(data_prefix=str(TEST_DATA / "cloudtrail"))
+CLOUDTRAIL_TEST_DATA_SOURCE = SourceLogCloudTrailTestData(
+    data_prefix=str(TEST_DATA / "cloudtrail")
+)
 
 ALL_2025_2026 = SourceFilter(days_inclusive=(date(2025, 4, 1), date(2026, 3, 31)))
 OCT_2025 = SourceFilter(days_inclusive=(date(2025, 10, 1), date(2025, 10, 31)))

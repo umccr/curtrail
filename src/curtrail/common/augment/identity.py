@@ -40,9 +40,7 @@ def with_identity_summary(df: pl.DataFrame) -> pl.DataFrame:
         .then(pl.lit("root"))
         .when(ui_type.is_in(["Service", "AWSService"]))
         .then(ui.struct.field("invokedBy"))
-        .otherwise(
-            ui.struct.field("arn").fill_null(ui.struct.field("principalId"))
-        )
+        .otherwise(ui.struct.field("arn").fill_null(ui.struct.field("principalId")))
         .alias("identityActor")
     )
 

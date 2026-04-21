@@ -20,6 +20,7 @@ def parse_date_range(user_input, tz: ZoneInfo = ZoneInfo("UTC")) -> Tuple[date, 
     like "this month" or "last 7 days" are evaluated against the current
     moment in `tz`.
     """
+
     def as_dates(start_dt: datetime, end_dt: datetime) -> Tuple[date, date]:
         return start_dt.date(), end_dt.date()
 

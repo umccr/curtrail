@@ -3,8 +3,8 @@ import pytest
 
 from curtrail.bill.bill_data_aws import BillDataAws
 
-
 # ── Row counts ────────────────────────────────────────────────────────────────
+
 
 def test_complete_bill_row_count(bill_data_aws: BillDataAws):
     # 21 rows total: 20 Anniversary + 1 Refund
@@ -36,13 +36,21 @@ def test_aws_refunds_bill(bill_data_aws: BillDataAws):
 
 # ── Service codes ─────────────────────────────────────────────────────────────
 
+
 def test_service_codes_contains_expected(bill_data_aws: BillDataAws):
     codes = bill_data_aws.service_codes()
-    for expected in ["AmazonEC2", "AmazonS3", "AmazonRDS", "AmazonCloudFront", "AWSLambda"]:
+    for expected in [
+        "AmazonEC2",
+        "AmazonS3",
+        "AmazonRDS",
+        "AmazonCloudFront",
+        "AWSLambda",
+    ]:
         assert expected in codes, f"Expected service code {expected!r} not found"
 
 
 # ── Marketplace ───────────────────────────────────────────────────────────────
+
 
 def test_marketplace_by_vendor_has_illumina(bill_data_aws: BillDataAws):
     vendors = bill_data_aws.aws_marketplace_by_vendor_bill()
@@ -57,6 +65,7 @@ def test_marketplace_illumina_rows(bill_data_aws: BillDataAws):
 
 
 # ── Cost sanity checks ────────────────────────────────────────────────────────
+
 
 def test_usage_bill_costs_are_positive(bill_data_aws: BillDataAws):
     usage = bill_data_aws.aws_usage_bill()

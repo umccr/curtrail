@@ -7,8 +7,8 @@ from curtrail.log.log_data_console import LogDataConsole
 from curtrail.log.log_data_service_event import LogDataServiceEvent
 from curtrail.log.log_data_vpce_event import LogDataVpceEvents
 
-
 # ── AwsApiCall ────────────────────────────────────────────────────────────────
+
 
 def test_api_call_filter(log_data: LogData):
     api = LogDataApiCall(log_data)
@@ -35,6 +35,7 @@ def test_api_call_error_codes(log_data: LogData):
 
 # ── AwsConsoleAction / AwsConsoleSignIn ───────────────────────────────────────
 
+
 def test_console_filter(log_data: LogData):
     console = LogDataConsole(log_data)
     frame = console.frame()
@@ -60,6 +61,7 @@ def test_console_error_is_failed_login(log_data: LogData):
 
 # ── AwsServiceEvent ───────────────────────────────────────────────────────────
 
+
 def test_service_event_filter(log_data: LogData):
     svc = LogDataServiceEvent(log_data)
     frame = svc.frame()
@@ -73,6 +75,7 @@ def test_service_event_count(log_data: LogData):
 
 # ── AwsVpceEvents ─────────────────────────────────────────────────────────────
 
+
 def test_vpce_event_empty(log_data: LogData):
     # No AwsVpceEvents type in test data — confirms the filter doesn't match wrong types
     assert LogDataVpceEvents(log_data)._vpce_events_logs.height == 0
@@ -80,13 +83,15 @@ def test_vpce_event_empty(log_data: LogData):
 
 # ── Read-only flag ────────────────────────────────────────────────────────────
 
+
 def test_api_calls_include_both_readonly_and_mutating(log_data: LogData):
     frame = LogDataApiCall(log_data).as_frame()
-    assert frame["readOnly"].any()       # some reads
-    assert (~frame["readOnly"]).any()    # some writes
+    assert frame["readOnly"].any()  # some reads
+    assert (~frame["readOnly"]).any()  # some writes
 
 
 # ── Day filtering ─────────────────────────────────────────────────────────────
+
 
 def test_single_day_filter_row_count(log_data_one_day: LogData):
     # March 11 has exactly 3 events across both accounts in the test data
@@ -95,6 +100,7 @@ def test_single_day_filter_row_count(log_data_one_day: LogData):
 
 def test_single_day_filter_only_correct_date(log_data_one_day: LogData):
     from datetime import date
+
     dates = (
         log_data_one_day.as_frame()
         .select(pl.col("eventTime").dt.date())

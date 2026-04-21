@@ -7,7 +7,9 @@ class LogDataApiCall:
     _api_call_logs: pl.DataFrame
 
     def __init__(self, parent: "LogData") -> None:
-        self._api_call_logs = parent.as_frame().filter(pl.col("eventType") == "AwsApiCall")
+        self._api_call_logs = parent.as_frame().filter(
+            pl.col("eventType") == "AwsApiCall"
+        )
 
     def as_frame(self) -> pl.DataFrame:
         return self._api_call_logs

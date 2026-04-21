@@ -68,16 +68,50 @@ def pass_curtrail(func):
 
         app()
     """
+
     @functools.wraps(func)
-    def wrapper(config: Path, days: str, accounts: tuple, regions: tuple, tz_name: str, **kwargs):
+    def wrapper(
+        config: Path, days: str, accounts: tuple, regions: tuple, tz_name: str, **kwargs
+    ):
         obj = _build_cli_context(config, days, accounts, regions, tz_name)
         return func(obj, **kwargs)
 
-    wrapper = click.option("--timezone", "tz_name", default="UTC", show_default=True, help="Timezone for interpreting --days, e.g. Australia/Sydney.")(wrapper)
-    wrapper = click.option("--region",   "regions",  multiple=True, default=["*"], show_default=True, help="Region(s) to include. Accepts shorthand e.g. APSE2. Repeat to add more.")(wrapper)
-    wrapper = click.option("--account",  "accounts", multiple=True, default=["*"], show_default=True, help="Account ID(s) to include. Accepts account names as found in local AWS config. Repeat to add more.")(wrapper)
-    wrapper = click.option("--days", required=True, type=click.STRING, help="Date range e.g. 'last 7 days', 'this month', '2026-01-01'.")(wrapper)
-    wrapper = click.option("--config", default="curtrail.toml", show_default=True, type=click.Path(path_type=Path), help="Path to the curtrail TOML config file.")(wrapper)
+    wrapper = click.option(
+        "--timezone",
+        "tz_name",
+        default="UTC",
+        show_default=True,
+        help="Timezone for interpreting --days, e.g. Australia/Sydney.",
+    )(wrapper)
+    wrapper = click.option(
+        "--region",
+        "regions",
+        multiple=True,
+        default=["*"],
+        show_default=True,
+        help="Region(s) to include. Accepts shorthand e.g. APSE2. Repeat to add more.",
+    )(wrapper)
+    wrapper = click.option(
+        "--account",
+        "accounts",
+        multiple=True,
+        default=["*"],
+        show_default=True,
+        help="Account ID(s) to include. Accepts account names as found in local AWS config. Repeat to add more.",
+    )(wrapper)
+    wrapper = click.option(
+        "--days",
+        required=True,
+        type=click.STRING,
+        help="Date range e.g. 'last 7 days', 'this month', '2026-01-01'.",
+    )(wrapper)
+    wrapper = click.option(
+        "--config",
+        default="curtrail.toml",
+        show_default=True,
+        type=click.Path(path_type=Path),
+        help="Path to the curtrail TOML config file.",
+    )(wrapper)
     return wrapper
 
 
@@ -92,14 +126,24 @@ def _build_cli_context(
     try:
         tz = ZoneInfo(tz_name)
     except ZoneInfoNotFoundError:
-        raise click.BadParameter(f"Unknown timezone '{tz_name}'", param_hint="--timezone")
+        raise click.BadParameter(
+            f"Unknown timezone '{tz_name}'", param_hint="--timezone"
+        )
 
     obj = CliContextObj()
-    obj.base_config = base_config if base_config is not None else load_base_config(config)
+    obj.base_config = (
+        base_config if base_config is not None else load_base_config(config)
+    )
 
-    source_filter = SourceFilter(days_inclusive=parse_date_range(days, tz=tz), timezone=tz)
-    source_filter.accounts = "*" if list(accounts) == ["*"] else expand_accounts(list(accounts))
-    source_filter.regions  = "*" if list(regions)  == ["*"] else expand_regions(list(regions))
+    source_filter = SourceFilter(
+        days_inclusive=parse_date_range(days, tz=tz), timezone=tz
+    )
+    source_filter.accounts = (
+        "*" if list(accounts) == ["*"] else expand_accounts(list(accounts))
+    )
+    source_filter.regions = (
+        "*" if list(regions) == ["*"] else expand_regions(list(regions))
+    )
 
     obj.source_filter = source_filter
     return obj
@@ -123,16 +167,56 @@ def make_basic_curtrail_app(
     """
 
     @click.group()
-    @click.option("--config", default=config_default, show_default=True, type=click.Path(path_type=Path), help="Path to the curtrail TOML config file.")
-    @click.option("--days", required=True, type=click.STRING, help="Date range e.g. 'last 7 days', 'this month', '2026-01-01'.")
-    @click.option("--account", "accounts", multiple=True, default=["*"], show_default=True, help="Account ID(s) to include. Accepts account names as found in local AWS config. Repeat to add more.")
-    @click.option("--region",  "regions",  multiple=True, default=["*"], show_default=True, help="Region(s) to include. Accepts shorthand e.g. APSE2. Repeat to add more.")
-    @click.option("--timezone", "tz_name", default="UTC", show_default=True, help="Timezone for interpreting --days, e.g. Australia/Sydney.")
+    @click.option(
+        "--config",
+        default=config_default,
+        show_default=True,
+        type=click.Path(path_type=Path),
+        help="Path to the curtrail TOML config file.",
+    )
+    @click.option(
+        "--days",
+        required=True,
+        type=click.STRING,
+        help="Date range e.g. 'last 7 days', 'this month', '2026-01-01'.",
+    )
+    @click.option(
+        "--account",
+        "accounts",
+        multiple=True,
+        default=["*"],
+        show_default=True,
+        help="Account ID(s) to include. Accepts account names as found in local AWS config. Repeat to add more.",
+    )
+    @click.option(
+        "--region",
+        "regions",
+        multiple=True,
+        default=["*"],
+        show_default=True,
+        help="Region(s) to include. Accepts shorthand e.g. APSE2. Repeat to add more.",
+    )
+    @click.option(
+        "--timezone",
+        "tz_name",
+        default="UTC",
+        show_default=True,
+        help="Timezone for interpreting --days, e.g. Australia/Sydney.",
+    )
     @click.pass_context
-    def group(ctx: click.Context, config: Path, days: str, accounts: tuple, regions: tuple, tz_name: str) -> None:
+    def group(
+        ctx: click.Context,
+        config: Path,
+        days: str,
+        accounts: tuple,
+        regions: tuple,
+        tz_name: str,
+    ) -> None:
         obj = ctx.ensure_object(CliContextObj)
-        built = _build_cli_context(config, days, accounts, regions, tz_name, base_config)
-        obj.base_config    = built.base_config
-        obj.source_filter  = built.source_filter
+        built = _build_cli_context(
+            config, days, accounts, regions, tz_name, base_config
+        )
+        obj.base_config = built.base_config
+        obj.source_filter = built.source_filter
 
     return group

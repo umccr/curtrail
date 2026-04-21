@@ -6,10 +6,26 @@ from curtrail import pass_curtrail, CliContextObj, LogData
 
 @click.command()
 @pass_curtrail
-@click.option("--bucket", "bucket_filter", default=None, help="Substring filter on bucket name.")
-@click.option("--key",    "key_filter",    default=None, help="Substring filter on object key.")
-@click.option("--last-n", "last_n", default=1, show_default=True, type=click.IntRange(min=1), help="Number of most recent accesses to show per bucket/key.")
-def app(context: CliContextObj, bucket_filter: str | None, key_filter: str | None, last_n: int) -> None:
+@click.option(
+    "--bucket", "bucket_filter", default=None, help="Substring filter on bucket name."
+)
+@click.option(
+    "--key", "key_filter", default=None, help="Substring filter on object key."
+)
+@click.option(
+    "--last-n",
+    "last_n",
+    default=1,
+    show_default=True,
+    type=click.IntRange(min=1),
+    help="Number of most recent accesses to show per bucket/key.",
+)
+def app(
+    context: CliContextObj,
+    bucket_filter: str | None,
+    key_filter: str | None,
+    last_n: int,
+) -> None:
     """For each S3 object (bucket + key), show the most recent data-plane access(es) and who performed them."""
     api_calls = LogData(context.base_config.logs, context.source_filter).api_call_logs()
 
@@ -33,8 +49,7 @@ def app(context: CliContextObj, bucket_filter: str | None, key_filter: str | Non
         df = df.filter(pl.col("key").str.contains(key_filter))
 
     df = (
-        df
-        .sort("eventTime")
+        df.sort("eventTime")
         .group_by("bucket", "key")
         .agg(
             pl.col("eventTime").tail(last_n).alias("lastAccess"),
@@ -43,7 +58,9 @@ def app(context: CliContextObj, bucket_filter: str | None, key_filter: str | Non
             pl.col("identityActor").tail(last_n),
             pl.col("identityRole").tail(last_n),
         )
-        .explode("lastAccess", "eventName", "identityType", "identityActor", "identityRole")
+        .explode(
+            "lastAccess", "eventName", "identityType", "identityActor", "identityRole"
+        )
         .sort(["bucket", "key", "lastAccess"], descending=[False, False, True])
     )
 

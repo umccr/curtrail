@@ -3,8 +3,14 @@ from typing import Optional
 
 import polars as pl
 
-from curtrail.common.augment.account_names import _account_id_name_batch, augment_with_account_name
-from curtrail.common.augment.geo import ip_as_city_name, augment_with_source_ip_address_city
+from curtrail.common.augment.account_names import (
+    _account_id_name_batch,
+    augment_with_account_name,
+)
+from curtrail.common.augment.geo import (
+    ip_as_city_name,
+    augment_with_source_ip_address_city,
+)
 from curtrail.common.augment.identity import with_identity_summary
 from curtrail.common.schema.aws_cloudtrail_schema import cloudtrail_all_fields
 from curtrail.source_filter import SourceFilter
@@ -36,11 +42,7 @@ class SourceLogCloudTrail(SourceLog):
         df = pl.scan_parquet(
             scan_root,
             hive_partitioning=True,
-            hive_schema={
-                "account": pl.String,
-                "region": pl.String,
-                "dt": pl.Date
-            },
+            hive_schema={"account": pl.String, "region": pl.String, "dt": pl.Date},
             schema=cloudtrail_all_fields,
             allow_missing_columns=False,
         )
@@ -70,9 +72,7 @@ class SourceLogCloudTrail(SourceLog):
         utc_start, utc_end = source_filter.utc_datetime_range()
 
         # Hive partition pre-filter on the dt=YYYY-MM-DD partition column.
-        df = df.filter(
-            pl.col("dt").is_between(utc_start.date(), utc_end.date())
-        )
+        df = df.filter(pl.col("dt").is_between(utc_start.date(), utc_end.date()))
 
         # Precise eventTime filter expressed in UTC milliseconds.
         df = df.filter(
@@ -90,14 +90,12 @@ class SourceLogCloudTrail(SourceLog):
         if source_filter.regions != "*":
             df = df.filter(pl.col("region").is_in(source_filter.regions))
 
-        #print(df.explain(optimized=False))
-        #print(df.explain(optimized=True))
+        # print(df.explain(optimized=False))
+        # print(df.explain(optimized=True))
 
-        #df, timings = df.profile()
-        #print(timings)
+        # df, timings = df.profile()
+        # print(timings)
 
         df = df.collect()
 
         return source_filter.localize_datetimes(self._augment(df))
-
-

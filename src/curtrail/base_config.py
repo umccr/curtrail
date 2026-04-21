@@ -42,26 +42,29 @@ def load_base_config(config_path: Path = Path("curtrail.toml")) -> BaseConfig:
         cfg = tomllib.load(f)
 
     bill_aws = [
-        SourceBillCURTestData(data_prefix=b["data_prefix"])
-        if b.get("test_data_loader", False)
-        else SourceBillCUR(data_prefix=b["data_prefix"])
+        (
+            SourceBillCURTestData(data_prefix=b["data_prefix"])
+            if b.get("test_data_loader", False)
+            else SourceBillCUR(data_prefix=b["data_prefix"])
+        )
         for b in cfg.get("bill_aws", [])
     ]
 
     bill_ica = [
-        SourceBillIca(data_prefix=b["data_prefix"])
-        for b in cfg.get("bill_ica", [])
+        SourceBillIca(data_prefix=b["data_prefix"]) for b in cfg.get("bill_ica", [])
     ]
 
     logs = [
-        SourceLogCloudTrailTestData(
-            data_prefix=l["data_prefix"],
-            organisation=l.get("organisation"),
-        )
-        if l.get("test_data_loader", False)
-        else SourceLogCloudTrail(
-            data_prefix=l["data_prefix"],
-            organisation=l.get("organisation"),
+        (
+            SourceLogCloudTrailTestData(
+                data_prefix=l["data_prefix"],
+                organisation=l.get("organisation"),
+            )
+            if l.get("test_data_loader", False)
+            else SourceLogCloudTrail(
+                data_prefix=l["data_prefix"],
+                organisation=l.get("organisation"),
+            )
         )
         for l in cfg.get("log", [])
     ]
