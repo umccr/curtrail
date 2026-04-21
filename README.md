@@ -1,11 +1,13 @@
 # curtrail
 
-A CLI tool and Python library for analyzing billing and logs:
+A Python library (especially for building CLI tools) for analyzing billing and logs:
 * AWS cost usage reports = *cur*
 * AWS CloudTrail entries = *trail*
 * ICA bills
 
 ## Tests
+
+There are basic tests that run against a set of local test data.
 
 ```
 uv run pytest
@@ -13,7 +15,7 @@ uv run pytest
 
 ## Example
 
-See `examples/sample-consumer` for an example of how to use the library
+See `examples/sample-cli` for an example of how to use the library
 by creating your own CLI tool(s) specific to a single use case.
 
 ## Adhoc Coding
