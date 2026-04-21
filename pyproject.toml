@@ -1,9 +1,13 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "curtrail"
 version = "0.1.0"
-description = "A set of Python scripts/modules that analyse the centre's CUR data and Cloud Trail logs"
+description = "A Python base library for analysing the centre's CUR data and CloudTrail logs"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.14"
 dependencies = [
     "polars",
     "numpy",
@@ -16,6 +20,16 @@ dependencies = [
     "dateparser",
     "orjson",
     "boto3",
-    "typer",
+    "click",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/curtrail"]

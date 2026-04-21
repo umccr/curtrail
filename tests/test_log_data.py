@@ -17,18 +17,18 @@ def test_api_call_filter(log_data: LogData):
 
 
 def test_api_call_count(log_data: LogData):
-    # 14 AwsApiCall events in the test data
-    assert LogDataApiCall(log_data).as_frame().height == 14
+    # 24 AwsApiCall events in the test data
+    assert LogDataApiCall(log_data).as_frame().height == 24
 
 
 def test_api_call_errors_count(log_data: LogData):
     # AccessDenied (GetObject on restricted path) + NoSuchKey (DeleteObject on stale key)
     errors = LogDataApiCall(log_data).errors()
-    assert errors.height == 2
+    assert errors.as_frame().height == 2
 
 
 def test_api_call_error_codes(log_data: LogData):
-    error_codes = LogDataApiCall(log_data).errors()["errorCode"].to_list()
+    error_codes = LogDataApiCall(log_data).errors().as_frame()["errorCode"].to_list()
     assert "AccessDenied" in error_codes
     assert "NoSuchKey" in error_codes
 

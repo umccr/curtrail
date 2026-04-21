@@ -31,17 +31,9 @@ class SourceLogCloudTrailTestData(SourceLogCloudTrail):
                     pl.col("__path__").str.extract(r"account=([^/]+)").alias("account"),
                     pl.col("__path__").str.extract(r"region=([^/]+)").alias("region"),
                     pl.col("__path__")
-                    .str.extract(r"year=(\d+)")
-                    .cast(pl.Int16)
-                    .alias("year"),
-                    pl.col("__path__")
-                    .str.extract(r"month=(\d+)")
-                    .cast(pl.Int8)
-                    .alias("month"),
-                    pl.col("__path__")
-                    .str.extract(r"day=(\d+)")
-                    .cast(pl.Int8)
-                    .alias("day"),
+                    .str.extract(r"dt=(\d{4}-\d{2}-\d{2})")
+                    .str.to_date()
+                    .alias("dt"),
                 ]
             )
             .drop("__path__")
@@ -49,5 +41,5 @@ class SourceLogCloudTrailTestData(SourceLogCloudTrail):
 
     def _augment(self, df: pl.DataFrame) -> pl.DataFrame:
         df = with_identity_summary(df)
-        df = self._augment_with_account_name(df)
+        # df = self._augment_with_account_name(df)
         return df

@@ -10,6 +10,15 @@ from geoip2.errors import AddressNotFoundError
 from maxminddb import MODE_MEMORY
 
 
+def augment_with_source_ip_address_city(df: pl.DataFrame, new_column_name: str = "sourceIPAddressCity") -> pl.DataFrame:
+    return df.with_columns(
+        pl.col("sourceIPAddress").map_batches(
+            lambda combined: ip_as_city_name("./geolite2-city.mmdb", combined),
+            return_dtype=pl.String,
+        )
+        .alias(new_column_name)
+    )
+
 def ip_as_iso_country_code(bucket: str, ip_array: pl.Series):
     """
     Batch process arrays of IPs and return a series with ISO country codes
@@ -60,6 +69,8 @@ def geo_country_iso_code_lookup(s3_bucket: str, ip_address: str) -> Optional[str
 
 @lru_cache(maxsize=None)
 def create_geo_reader(bucket_name: str) -> geoip2.database.Reader:
+
+    return geoip2.database.Reader(bucket_name, None, MODE_MEMORY)
 
     object_key = "GeoLite2-City.mmdb"
 

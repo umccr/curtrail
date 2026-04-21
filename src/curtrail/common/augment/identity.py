@@ -13,8 +13,8 @@ def with_identity_summary(df: pl.DataFrame) -> pl.DataFrame:
     identityActor — a single human-readable identifier for *who* acted:
                        IAMUser    → userName
                        AssumedRole→ session name (the part of principalId
-                                    after ":", e.g. "umccr-notify" from
-                                    "AROAEXAMPLE:umccr-notify")
+                                    after ":", e.g. "uog-notify" from
+                                    "AROAEXAMPLE:uog-notify")
                        Root       → "root"
                        Service    → invokedBy
                        AWSService → invokedBy

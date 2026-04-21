@@ -1,0 +1,24 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sample-cli"
+version = "0.1.0"
+description = "An example standalone CLI project that uses curtrail as a library"
+requires-python = ">=3.14"
+dependencies = [
+    "curtrail",
+    "click",
+]
+
+[project.scripts]
+sample-cli = "sample_cli.main:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sample_cli"]
+
+# references the curtrail package locally - normally this
+# would be to a reference in github or pypi eventually
+[tool.uv.sources]
+curtrail = { path = "../..", editable = true }

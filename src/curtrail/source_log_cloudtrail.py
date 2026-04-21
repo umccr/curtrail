@@ -3,8 +3,8 @@ from typing import Optional
 
 import polars as pl
 
-from curtrail.common.augment.account_names import account_id_name
-from curtrail.common.augment.geo import ip_as_city_name
+from curtrail.common.augment.account_names import _account_id_name_batch, augment_with_account_name
+from curtrail.common.augment.geo import ip_as_city_name, augment_with_source_ip_address_city
 from curtrail.common.augment.identity import with_identity_summary
 from curtrail.common.schema.aws_cloudtrail_schema import cloudtrail_all_fields
 from curtrail.source_filter import SourceFilter
@@ -33,24 +33,24 @@ class SourceLogCloudTrail(SourceLog):
         Scan Parquet files from the specified scan root with Hive partitioning
         and enforcing our known CloudTrail schema.
         """
-        return pl.scan_parquet(
+        df = pl.scan_parquet(
             scan_root,
             hive_partitioning=True,
             hive_schema={
                 "account": pl.String,
                 "region": pl.String,
-                "year": pl.Int16,
-                "month": pl.Int8,
-                "day": pl.Int8,
+                "dt": pl.Date
             },
             schema=cloudtrail_all_fields,
             allow_missing_columns=False,
         )
 
+        return df
+
     def _augment(self, df: pl.DataFrame) -> pl.DataFrame:
         df = with_identity_summary(df)
-        df = self._augment_with_source_ip_address_city(df)
-        df = self._augment_with_account_name(df)
+        df = augment_with_source_ip_address_city(df)
+        df = augment_with_account_name(df)
         return df
 
     def fetch_data(self, source_filter: SourceFilter) -> pl.DataFrame:
@@ -69,20 +69,9 @@ class SourceLogCloudTrail(SourceLog):
         # (coarse pre-filter) and eventTime for the precise cut.
         utc_start, utc_end = source_filter.utc_datetime_range()
 
-        # Hive partition pre-filter: build a synthetic date column from the
-        # partition keys and compare it to the UTC date range.  This avoids
-        # the broken independent year/month/day predicates and correctly
-        # handles ranges that cross month or year boundaries.
+        # Hive partition pre-filter on the dt=YYYY-MM-DD partition column.
         df = df.filter(
-            (
-                pl.col("year").cast(pl.String)
-                + "-"
-                + pl.col("month").cast(pl.String).str.zfill(2)
-                + "-"
-                + pl.col("day").cast(pl.String).str.zfill(2)
-            )
-            .str.to_date()
-            .is_between(utc_start.date(), utc_end.date())
+            pl.col("dt").is_between(utc_start.date(), utc_end.date())
         )
 
         # Precise eventTime filter expressed in UTC milliseconds.
@@ -101,33 +90,14 @@ class SourceLogCloudTrail(SourceLog):
         if source_filter.regions != "*":
             df = df.filter(pl.col("region").is_in(source_filter.regions))
 
-        return source_filter.localize_datetimes(self._augment(df.collect()))
+        #print(df.explain(optimized=False))
+        #print(df.explain(optimized=True))
 
-    def _augment_with_source_ip_address_city(self, df: pl.DataFrame) -> pl.DataFrame:
-        return df.with_columns(
-            pl.col("sourceIPAddress").map_batches(
-                lambda combined: ip_as_city_name("umccr-cloudtrail-org-root", combined),
-                return_dtype=pl.String,
-            )
-            # .("sourceIPAddressCity")
-        )
+        #df, timings = df.profile()
+        #print(timings)
 
-    # def _augment_with_source_ip_address_country(self, df: pl.DataFrame) -> pl.DataFrame:
-    #     return df.with_columns(
-    #         pl.struct(["sourceIPAddress"])
-    #         .map_batches(
-    #             lambda combined: ip_as_iso_country_code("umccr-cloudtrail-org-root",
-    #                                                     combined.struct.field("sourceIPAddress")),
-    #             return_dtype=pl.String,
-    #         )
-    #         .alias("sourceIPAddressCountry")
-    #     )
+        df = df.collect()
 
-    def _augment_with_account_name(self, df: pl.DataFrame) -> pl.DataFrame:
-        return df.with_columns(
-            pl.col("account").map_batches(
-                lambda combined: account_id_name(combined),
-                return_dtype=pl.String,
-            )
-            # .alias("accountName")
-        )
+        return source_filter.localize_datetimes(self._augment(df))
+
+

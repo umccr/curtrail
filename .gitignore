@@ -13,3 +13,5 @@ wheels/
 curtrail-*.sh
 
 
+/.claude/
+/.pytest_cache/

@@ -1,0 +1,16 @@
+# Static configuration for the sample-cli.
+# Copy this file and fill in the values for your environment.
+# Pass --config <path> to any command if you keep it somewhere other than ./curtrail.toml
+#
+# Multiple sources of the same type are supported — just repeat the [[section]].
+
+[[log]]
+data_prefix  = "../../test-data/cloudtrail"
+test_data_loader = true
+
+[[bill_aws]]
+data_prefix      = "../../test-data/cur"
+test_data_loader = true
+
+[[bill_ica]]
+data_prefix = "../../test-data/ica"

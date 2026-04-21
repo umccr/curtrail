@@ -5,6 +5,7 @@ from typing import List, Optional
 
 from curtrail.source_bill_cur import SourceBillCUR
 from curtrail.source_bill_cur_test_data import SourceBillCURTestData
+from curtrail.source_bill_ica import SourceBillIca
 from curtrail.source_log_cloudtrail import SourceLogCloudTrail
 from curtrail.source_log_cloudtrail_test_data import SourceLogCloudTrailTestData
 
@@ -16,9 +17,14 @@ class BaseConfig:
     Loaded from a TOML file or built from CLI arguments. Does not contain
     any query parameters (date range, accounts) — those come from the client
     via SourceFilter.
+
+    Both bill_aws and bill_ica may be configured simultaneously. Callers
+    choose which billing source to use at query time.
     """
 
-    bills: List[SourceBillCUR] = field(default_factory=list)
+    bill_aws: List[SourceBillCUR] = field(default_factory=list)
+
+    bill_ica: List[SourceBillIca] = field(default_factory=list)
 
     logs: List[SourceLogCloudTrail] = field(default_factory=list)
 
@@ -35,11 +41,16 @@ def load_base_config(config_path: Path = Path("curtrail.toml")) -> BaseConfig:
     with open(config_path, "rb") as f:
         cfg = tomllib.load(f)
 
-    bills = [
+    bill_aws = [
         SourceBillCURTestData(data_prefix=b["data_prefix"])
         if b.get("test_data_loader", False)
         else SourceBillCUR(data_prefix=b["data_prefix"])
-        for b in cfg.get("billing", [])
+        for b in cfg.get("bill_aws", [])
+    ]
+
+    bill_ica = [
+        SourceBillIca(data_prefix=b["data_prefix"])
+        for b in cfg.get("bill_ica", [])
     ]
 
     logs = [
@@ -58,7 +69,8 @@ def load_base_config(config_path: Path = Path("curtrail.toml")) -> BaseConfig:
     geolite2_path = cfg.get("geo", {}).get("geolite2_path")
 
     return BaseConfig(
-        bills=bills,
+        bill_aws=bill_aws,
+        bill_ica=bill_ica,
         logs=logs,
         geolite2_path=geolite2_path,
     )
