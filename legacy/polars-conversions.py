@@ -12,6 +12,7 @@ from common.schema.aws_cur_schema import (
     line_item_product_code_name,
 )
 
+
 def cost_by_service(df: pl.DataFrame):
     return (
         df.group_by(
@@ -125,9 +126,6 @@ def get_purchase_option() -> pl.Expr:
         .then(pl.lit("Spot"))
         .otherwise(pl.col("pricing_term"))
     )
-
-
-
 
 
 def usage_of_ec2_instances(df: pl.DataFrame):
