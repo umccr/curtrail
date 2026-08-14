@@ -2,7 +2,8 @@
   <p align="center">
     This work forms part of the Australian BioCommons GUARDIANS program, which is enabled by NCRIS investment via Bioplatforms Australia.
   </p>
-  <img src="./australian-biocommons-logo.png" alt="Australian Government Logo" width="250" />
+  <img src="./australian-biocommons-logo.png" alt="Australian BioCommons Logo" width="250" />
+  <hr/>
 </div>
 
 # curtrail
