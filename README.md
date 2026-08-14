@@ -1,3 +1,10 @@
+<div align="center">
+  <img src="./australian-biocommons-logo.png" alt="Australian Government Logo" width="300" />
+  <p align="center">
+    This work forms part of the Australian BioCommons GUARDIANS program, which is enabled by NCRIS investment via Bioplatforms Australia.
+  </p>
+</div>
+
 # curtrail
 
 A Python library (especially for building CLI tools) for analyzing billing and logs:
@@ -50,9 +57,3 @@ data_prefix = "s3://org-b-cur-bucket"
 data_prefix = "s3://org-b-ica-bucket"
 ```
 
-<div align="center">
-  <img src="./australian-biocommons-logo.png" alt="Australian Government Logo" width="300" />
-  <p align="center">
-    This work forms part of the Australian BioCommons GUARDIANS program, which is enabled by NCRIS investment via Bioplatforms Australia.
-  </p>
-</div>
